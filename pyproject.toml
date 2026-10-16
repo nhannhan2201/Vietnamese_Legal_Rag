@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vietnamese-legal-rag"
+version = "0.1.0"
+description = "Retrieval-augmented question answering for Vietnamese legal documents."
+requires-python = ">=3.11"
+dependencies = [
+    "huggingface-hub",
+    "pyarrow",
+    "PyYAML",
+    "langchain-text-splitters",
+    "rank-bm25",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["legal_rag", "legal_rag.*"]
+namespaces = false

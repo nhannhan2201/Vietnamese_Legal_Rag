@@ -1,0 +1,22 @@
+# Downloaded data, processed documents and indexes
+/data/
+
+# Generated evaluation results
+/results/
+
+# Local secrets; keep the example configuration
+.env
+.env.*
+!.env.example
+
+# Python bytecode and packaging artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Local virtual environments and test cache
+.venv/
+venv/
+.pytest_cache/

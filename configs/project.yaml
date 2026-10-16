@@ -1,0 +1,10 @@
+dataset:
+  repo_id: "th1nhng0/vietnamese-legal-documents"
+  revision: "0a39ad7eae8e6c188cb225c4b1443c3b346461d8"
+  files:
+    metadata: "data/metadata.parquet"
+    content: "data/content.parquet"
+    relationships: "data/relationships.parquet"
+
+paths:
+  raw_dir: "data/raw"
