@@ -13,6 +13,9 @@ dependencies = [
     "PyYAML",
     "langchain-text-splitters",
     "rank-bm25",
+    "httpx",
+    "chromadb==1.5.9",
+    "numpy",
 ]
 
 [tool.setuptools.packages.find]
