@@ -56,6 +56,14 @@ def _protocol(model_revision: str) -> dict:
     }
 
 
+def _configured_revision(config: ProjectConfig, override: str | None) -> str:
+    if config.embedding.model != MODEL:
+        raise ValueError(f"This embedding client supports {MODEL}; update the client before changing models.")
+    if override is not None and override.lower() != config.embedding.revision:
+        raise ValueError("Explicit model_revision differs from embedding.revision in project.yaml.")
+    return config.embedding.revision
+
+
 def _open_collection(directory: Path, fingerprint: str, create: bool):
     client = chromadb.PersistentClient(
         path=str(directory), settings=Settings(anonymized_telemetry=False)
@@ -101,11 +109,13 @@ def _inventory(collection) -> tuple[dict[str, dict], str]:
 
 
 def build_dense(config: ProjectConfig, embedding_client: EmbeddingClient, *,
-                model_revision: str) -> Path:
+                model_revision: str | None = None) -> Path:
     """Build/resume with an exclusive writer lock (Linux local/Kaggle).
 
-    model_revision must identify the actual weights served by the endpoint.
+    Read model revision from project.yaml. An optional explicit revision must
+    match configuration and identify the actual weights served by the endpoint.
     """
+    model_revision = _configured_revision(config, model_revision)
     directory = PROJECT_ROOT / "data/indexes/sample_200"
     directory.mkdir(parents=True, exist_ok=True)
     with (directory / ".dense-build.lock").open("a") as lock:
@@ -213,7 +223,7 @@ def _build_dense(config: ProjectConfig, embedding_client: EmbeddingClient, *,
     return database
 
 
-def load_dense(config: ProjectConfig, *, model_revision: str) -> dict:
+def load_dense(config: ProjectConfig, *, model_revision: str | None = None) -> dict:
     """Validate a complete local or copied Chroma corpus; source files are optional."""
     directory = PROJECT_ROOT / "data/indexes/sample_200"
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
@@ -221,7 +231,7 @@ def load_dense(config: ProjectConfig, *, model_revision: str) -> dict:
     details = manifest.get("dense", {})
     if details.get("status") != "ready":
         raise ValueError("Dense index is incomplete. Finish build_dense before searching.")
-    protocol = _protocol(model_revision)
+    protocol = _protocol(_configured_revision(config, model_revision))
     if any(details.get(key) != value for key, value in protocol.items()):
         raise ValueError("Dense model/protocol/Chroma version mismatch.")
     signature = {**protocol, "chunks_sha256": manifest["chunks_sha256"],
@@ -265,7 +275,7 @@ def search_dense(index: dict, embedding_client: EmbeddingClient,
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build/resume the pilot Chroma index.")
     parser.add_argument("--base-url", default=os.environ.get("EMBEDDING_BASE_URL", "http://127.0.0.1:8000/v1"))
-    parser.add_argument("--model-revision", required=True, help="Exact HF commit SHA served by vLLM.")
+    parser.add_argument("--model-revision", help="Optional check; must match embedding.revision in project.yaml.")
     parser.add_argument("--batch-size", type=int, default=16)
     args = parser.parse_args()
     with EmbeddingClient(args.base_url, batch_size=args.batch_size,

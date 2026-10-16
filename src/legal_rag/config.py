@@ -24,9 +24,16 @@ class PathsConfig:
 
 
 @dataclass(frozen=True)
+class EmbeddingConfig:
+    model: str
+    revision: str
+
+
+@dataclass(frozen=True)
 class ProjectConfig:
     dataset: DatasetConfig
     paths: PathsConfig
+    embedding: EmbeddingConfig
 
 
 def _require_mapping(value: object, field: str) -> dict:
@@ -49,7 +56,7 @@ def _resolve_local_path(value: str | Path) -> Path:
 
 
 def load_config(config_path: str | Path = "configs/project.yaml") -> ProjectConfig:
-    """Load the settings required for downloading the source dataset.
+    """Load project source paths and the pinned embedding model identity.
 
     Relative config and output paths are resolved against PROJECT_ROOT,
     regardless of the terminal's current directory. Absolute paths are also
@@ -81,7 +88,14 @@ def load_config(config_path: str | Path = "configs/project.yaml") -> ProjectConf
     paths = _require_mapping(root.get("paths"), "paths")
     raw_dir = _require_string(paths.get("raw_dir"), "paths.raw_dir")
 
+    embedding = _require_mapping(root.get("embedding"), "embedding")
+    model = _require_string(embedding.get("model"), "embedding.model")
+    model_revision = _require_string(embedding.get("revision"), "embedding.revision")
+    if re.fullmatch(r"[0-9a-fA-F]{40}", model_revision) is None:
+        raise ValueError("embedding.revision must be a full 40-character commit SHA.")
+
     return ProjectConfig(
         dataset=DatasetConfig(repo_id=repo_id, revision=revision, files=files),
         paths=PathsConfig(raw_dir=_resolve_local_path(raw_dir)),
+        embedding=EmbeddingConfig(model=model, revision=model_revision.lower()),
     )
