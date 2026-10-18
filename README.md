@@ -288,7 +288,7 @@ Kết quả `OK` nghĩa là các bài test đã đạt. Không cần chạy lệ
 
 Ứng dụng hiện chỉ tra cứu trong 200 văn bản mẫu. Nhãn “Còn hiệu lực” được lấy từ dataset, chưa có bước xác minh hoặc cập nhật hiệu lực hiện tại. Phần làm sạch chưa đọc chữ trong ảnh và có thể còn lỗi định dạng.
 
-Trích dẫn giúp người đọc đối chiếu, nhưng chương trình chưa tự xác nhận từng nhận định của LLM có đúng với nguồn hay không. Đây là bản demo local, chưa có đăng nhập hoặc lưu hội thoại lâu dài. Thông tin trả lời không thay thế tư vấn pháp lý.
+Mỗi câu trả lời đi kèm trích dẫn để người dùng mở và đối chiếu với đoạn văn bản nguồn. Bản hiện tại phục vụ demo trên máy local; lịch sử câu hỏi được giữ trong phiên trình duyệt. Khi áp dụng vào tình huống thực tế, người dùng cần kiểm tra hiệu lực và phạm vi áp dụng của văn bản.
 
 ## Tham khảo
 
