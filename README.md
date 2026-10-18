@@ -181,7 +181,7 @@ data/indexes/sample_200/
 
 Chroma được mở trực tiếp bằng thư viện Python, không cần chạy Docker hoặc một server Chroma riêng. Những file này được dùng lại khi tìm kiếm, không cần tạo lại mỗi lần mở web.
 
-Nếu chuyển dữ liệu đã tạo từ Kaggle về local, dừng chương trình trước khi sao chép cả hai thư mục `data/processed/sample_200/` và `data/indexes/sample_200/`. Dữ liệu và index không được đính kèm trong repo GitHub.
+Dữ liệu và index được tạo ở local, không đính kèm trong repo GitHub.
 
 ## 5. Mở web
 
@@ -267,21 +267,22 @@ Vietnamese_Legal_Rag/
 
 Giải thích từng file trong [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md). Các quyết định trong quá trình làm được ghi ở [PROJECT_PLAN.md](PROJECT_PLAN.md).
 
-## Kiểm tra code và lỗi thường gặp
+## Kiểm tra code
 
-Chạy bộ kiểm tra bằng dữ liệu giả, không gọi API model thật:
+Sau khi sửa code, có thể chạy lệnh dưới đây để kiểm tra các hàm xử lý và API. Các bài test dùng dữ liệu mẫu và giả lập phản hồi model, không gọi dịch vụ embedding/LLM thật nên không tốn phí API.
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-- **Không import được `legal_rag`:** kích hoạt đúng môi trường và chạy `python -m pip install -e .` tại gốc repo.
-- **Cổng 8001 đã được sử dụng:** dừng server cũ bằng `Ctrl+C` trong terminal của nó rồi chạy lại.
-- **Embedding trả 401:** kiểm tra key trong `.env` có giống key trên server không.
-- **Ngrok lỗi hoặc trả trang HTML:** kiểm tra phiên Kaggle, server vLLM và URL hiện tại. URL trong `.env` cần kết thúc bằng `/v1`.
-- **Lỗi CUDA khi khởi động vLLM:** xem log và dùng đúng môi trường/phiên bản trong notebook.
-- **Web báo lỗi 502:** kiểm tra kết nối tới embedding và LLM. `/health` chỉ cho biết dữ liệu local đã nạp, không kiểm tra hai dịch vụ bên ngoài.
-- **Thông báo checksum không khớp:** kiểm tra dữ liệu và index có được tạo từ cùng một bộ nguồn hay không; không sửa checksum để bỏ qua lỗi.
+Kết quả `OK` nghĩa là các bài test đã đạt. Không cần chạy lệnh này mỗi lần mở web.
+
+## Khi gặp lỗi
+
+- **Không tìm thấy package `legal_rag`:** chạy `conda activate legal-rag`, rồi `python -m pip install -e .` trong thư mục dự án.
+- **Cổng 8001 đang được dùng:** bấm `Ctrl+C` ở terminal chạy web cũ, rồi khởi động lại.
+- **Không gọi được model:** kiểm tra phiên Kaggle còn chạy, URL ngrok trong `.env` còn đúng và các API key đã được điền. Nếu báo 401, kiểm tra lại API key của dịch vụ đang báo lỗi.
+- **vLLM không khởi động được:** xem log trên Kaggle và kiểm tra đã bật GPU, dùng đúng các bước trong notebook.
 
 ## Giới hạn
 
