@@ -1,9 +1,13 @@
 """HTTP client for the project's Qwen embedding service; no local model loading."""
 
 import math
+import os
 from types import TracebackType
 
 import httpx
+from dotenv import dotenv_values
+
+from legal_rag.config import PROJECT_ROOT
 
 
 MODEL = "Qwen/Qwen3-Embedding-0.6B"
@@ -21,6 +25,26 @@ class EmbeddingClient:
     Queries get an instruction here; the server must not add another one.
     Returned vectors are validated but never normalized or otherwise changed.
     """
+
+    @classmethod
+    def from_env(cls, *, base_url: str | None = None,
+                 batch_size: int = 16) -> "EmbeddingClient":
+        """Read the project .env directly, without changing os.environ.
+
+        Explicit base_url wins, then values in .env, then process environment.
+        A present but blank .env value is an error, not a silent fallback to an
+        old exported URL/key. Use the normal constructor for anonymous APIs.
+        """
+        settings = dotenv_values(PROJECT_ROOT / ".env", interpolate=False)
+        url = base_url if base_url is not None else settings.get(
+            "EMBEDDING_BASE_URL", os.environ.get("EMBEDDING_BASE_URL")
+        )
+        key = settings.get("VLLM_API_KEY", os.environ.get("VLLM_API_KEY"))
+        if not isinstance(url, str) or not url.strip():
+            raise ValueError("Set EMBEDDING_BASE_URL in the project .env file or environment.")
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("Set VLLM_API_KEY in the project .env file or environment.")
+        return cls(url, batch_size=batch_size, api_key=key)
 
     def __init__(self, base_url: str, *, batch_size: int = 16,
                  api_key: str | None = None) -> None:

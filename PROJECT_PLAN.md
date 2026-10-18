@@ -150,3 +150,52 @@ MVP **không tự trích xuất số hiệu/Điều/Khoản/ngày từ câu hỏ
 - Cách trích xuất vị trí Điều/Khoản/Điểm từ định dạng dữ liệu thực tế.
 - Embedding model, LLM và cách chạy/serve model thực tế; môi trường phát triển local đã chốt là Conda `legal-rag` với Python 3.11. Code cần chạy được bằng các script `.py` ở local hoặc trên Kaggle.
 - Giao diện demo và cách triển khai.
+
+### Chốt bộ câu hỏi ngày 2026-10-17
+
+- Người dùng đã duyệt 30 câu tại `eval/sample_200/questions.jsonl`; `review_status=verified`.
+- Mỗi câu giữ question_id, question, reference_answer, evidence, review_status, split. Nhãn gốc là doc_id + quote + vị trí trong văn bản sạch; không phụ thuộc chunk ID.
+- Có 15 câu nêu số hiệu và 15 câu không nêu số hiệu; 31 đoạn bằng chứng (q028 có hai đoạn thay thế).
+- Chưa chia dev/test hoặc chạy benchmark. Bước tiếp theo là chốt cách đánh giá, chia dev/test trước khi điều chỉnh retrieval, và ánh xạ bằng chứng sang chunk của corpus hiện tại.
+
+### Điều chỉnh đánh giá và dữ liệu ngày 2026-10-17
+
+- Bộ 30 câu hiện gồm 24 câu một văn bản (giữ phê duyệt) và 6 câu hai văn bản chờ duyệt lại: q008, q014, q021, q023, q026, q028. Quyết định này thay mô tả trước về bộ 30 câu một nguồn đã chốt.
+- Giữ evidence theo vị trí văn bản sạch; nhiều khoảng trong cùng doc_id được phép. Chunk đúng phải bao trọn ít nhất một khoảng có cùng doc_id.
+- Recall@5 theo doc_id khác nhau của top 5 chunk; Hit@5/MRR@5 theo chunk chứa bằng chứng. Không dùng chunk Recall trong bản đầu. Đo thêm thời gian retrieval trung bình.
+- Hit/MRR không thể hiện đủ cả hai nguồn; chưa chia dev/test, chưa chạy benchmark.
+
+### Chốt phiên bản có câu hai nguồn ngày 2026-10-17
+
+- Người dùng đã chốt toàn bộ 30 câu hiện tại, gồm 24 câu một văn bản và 6 câu hai văn bản (q008, q014, q021, q023, q026, q028); tất cả review_status=verified. Xác nhận này thay trạng thái chờ duyệt sáu câu ở mục trước.
+- Tổng 36 khoảng bằng chứng, 15 câu có số hiệu và 15 câu không có. Giữ nguyên câu hỏi, đáp án, doc_id, quote và vị trí nguồn; chỉ cập nhật trạng thái duyệt và checksum.
+- Bước tiếp theo là viết code đánh giá theo giao thức trong eval/sample_200/manifest.json; chưa chia dev/test hoặc chạy benchmark.
+
+### Sửa nhãn thay thế q028 sau lần đánh giá đầu
+
+- Bổ sung Điều 3 của doc_id 141383 vào evidence q028 theo yêu cầu người dùng; giữ Điều 10 và bằng chứng doc_id 162690. q028 có 2 văn bản, 3 khoảng; tổng bộ dữ liệu có 37 khoảng.
+- Không đổi câu hỏi, đáp án hoặc quy tắc metrics. Kết quả lần chạy 20261017_083537_121464_c44f502d dựa nhãn cũ cần được chấm lại hoặc chạy lại, không ghi đè kết quả gốc.
+
+### Luồng trả lời RAG có nguồn
+
+- `generation/answer.py` chứa `SYSTEM_PROMPT` trong cùng file; không tạo `prompt.txt`. Hàm `answer_question` nhận index và client đã tạo để tái sử dụng.
+- Hybrid RRF mặc định theo lựa chọn người dùng; vẫn chọn được BM25 hoặc dense. Đánh số nguồn theo chunk, không gộp theo doc_id.
+- Output gồm câu trả lời, trạng thái, danh sách số nguồn được trích dẫn và nguyên văn các nguồn thực sự gửi cho LLM. UI bấm trích dẫn làm sau; chưa tạo URL ngoài.
+- Kiểm tra trích dẫn chỉ xác nhận định dạng và số nguồn hợp lệ, không tự xác nhận từng nhận định đúng. Không có kết quả thì không gọi LLM; thiếu căn cứ hoàn toàn thì dùng câu từ chối cố định.
+- Đã kiểm tra bằng retrieval/LLM giả; lần triển khai này chưa gọi API thật hoặc chạy bộ đánh giá generation.
+
+### API phục vụ luồng RAG
+
+- `app/api.py` dùng FastAPI, cung cấp `POST /ask` (`question`, `method` mặc định hybrid) và `GET /health`; dùng nguyên `answer_question()` hiện có với top 5 mặc định.
+- Nạp index và tạo EmbeddingClient/LLMClient trong lifespan một lần mỗi tiến trình, đóng các HTTP client khi dừng. Không load tài nguyên hoặc gọi API khi chỉ import module.
+- Local demo: `python -m uvicorn legal_rag.app.api:app --host 127.0.0.1 --port 8001`, một worker; tài liệu tương tác ở `/docs`. Health không kiểm tra kết nối thực tế đến nhà cung cấp.
+- Lỗi request trả 422, lỗi pipeline dự kiến trả 502, lỗi nội bộ khác trả 500; không trả thông tin key hoặc phản hồi provider ra client. Không tự retry và không dựng lại index.
+
+### Giao diện web Luật Việt
+
+- UI HTML/CSS/JavaScript trong `src/legal_rag/app/static/`, FastAPI phục vụ trang `/` và asset `/static/`; không cần build frontend hoặc thêm dependency.
+- Tông navy, kem, vàng đồng; ảnh cán cân công lý/sách luật tạo bằng imagegen; bố cục responsive cho máy tính và điện thoại.
+- Gửi câu hỏi đến `/ask`, hybrid mặc định; có lựa chọn BM25/dense. Lịch sử lưu trong bộ nhớ tab, không dùng làm hội thoại đầu vào cho model.
+- Bấm trích dẫn mở nguyên văn chunk cùng metadata trong bảng nguồn. Hiển thị thiếu bằng chứng/lỗi rõ ràng, không tự gửi lại hoặc gọi model từ trình duyệt.
+- `.env` chỉ dùng ở backend. UI hiển thị Markdown cơ bản bằng DOM an toàn, không render HTML từ model hoặc nguồn.
+- Chạy cùng lệnh Uvicorn ở cổng 8001 rồi mở `/`. Cần giữ endpoint embedding và dịch vụ LLM hoạt động khi hỏi thật.

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#142d3b">
+  <meta name="description" content="Hỏi đáp pháp luật Việt Nam dựa trên văn bản nguồn, với trích dẫn có thể kiểm chứng.">
+  <title>Luật Việt — Hỏi có cơ sở, hiểu có nguồn</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#question">Đến ô đặt câu hỏi</a>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Điều hướng">
+    <a class="brand" href="/" aria-label="Luật Việt, trang đầu">
+      <span class="brand-mark" aria-hidden="true">⚖</span>
+      <span>Luật Việt<small>TRỢ LÝ TRA CỨU PHÁP LUẬT</small></span>
+    </a>
+    <button class="new-chat" id="new-chat"><span aria-hidden="true">＋</span> Cuộc trao đổi mới</button>
+    <div class="history-heading">TRA CỨU GẦN ĐÂY <span id="history-count">0</span></div>
+    <nav id="history" class="history" aria-label="Câu hỏi trong phiên này"></nav>
+    <p id="empty-history" class="empty-history">Những câu hỏi của bạn sẽ xuất hiện ở đây trong phiên này.</p>
+    <div class="sidebar-bottom">
+      <div class="corpus-card"><span class="small-book" aria-hidden="true">▤</span><div><strong>200 văn bản</strong><span>Corpus thử nghiệm</span></div></div>
+      <p>Mỗi câu trả lời đi cùng đoạn nguồn để bạn tự đối chiếu.</p>
+      <div class="sidebar-footer">DỰ ÁN NGHIÊN CỨU <span>VIỆT NAM</span></div>
+    </div>
+  </aside>
+  <div class="main-shell">
+    <header class="topbar">
+      <span class="breadcrumb">Không gian tra cứu <span>/</span> <strong>Hỏi đáp pháp luật</strong></span>
+      <span class="connection" id="connection" role="status"><i></i> Đang kiểm tra dịch vụ</span>
+    </header>
+    <main id="main-content">
+      <section class="welcome" id="welcome" aria-labelledby="welcome-title">
+        <div class="hero">
+          <img src="/static/assets/legal-hero.webp" alt="Cán cân công lý bằng đồng bên những cuốn sách luật" width="1536" height="1024">
+          <div class="hero-shade"></div>
+          <div class="hero-copy"><span class="eyebrow">HIỂU LUẬT TỪ VĂN BẢN GỐC</span><h1 id="welcome-title">Hỏi có cơ sở.<br>Hiểu có nguồn.</h1><p>Cùng bạn tìm câu trả lời từ văn bản<br>pháp luật Việt Nam, với bằng chứng rõ ràng.</p></div>
+          <span class="hero-caption">PHÁP LUẬT · TRI THỨC · MINH BẠCH</span>
+        </div>
+        <div class="intro"><div><h2>Bạn đang muốn tìm hiểu điều gì?</h2><p>Đặt câu hỏi cụ thể, thêm tên văn bản hoặc địa phương nếu có.</p></div><span class="intro-icon" aria-hidden="true">↙</span></div>
+        <div class="suggestions" aria-label="Câu hỏi gợi ý">
+          <button class="suggestion" data-question="Theo Luật Cạnh tranh năm 2018, tác động hạn chế cạnh tranh được hiểu như thế nào?"><span class="suggestion-type">KINH DOANH <span aria-hidden="true">↗</span></span><strong>Tác động hạn chế cạnh tranh được hiểu như thế nào?</strong><span class="suggestion-note">Luật Cạnh tranh năm 2018</span></button>
+          <button class="suggestion" data-question="Hồ sơ xin cấp giấy phép khai thác mỏ đá quý gồm những gì?"><span class="suggestion-type">THỦ TỤC <span aria-hidden="true">↗</span></span><strong>Hồ sơ xin cấp giấy phép khai thác mỏ đá quý gồm những gì?</strong><span class="suggestion-note">Tra cứu thành phần hồ sơ</span></button>
+          <button class="suggestion" data-question="Theo Luật Chăn nuôi năm 2018, một đơn vị vật nuôi tương đương bao nhiêu kg khối lượng sống và mật độ chăn nuôi được tính như thế nào?"><span class="suggestion-type">NÔNG NGHIỆP <span aria-hidden="true">↗</span></span><strong>Đơn vị vật nuôi và mật độ chăn nuôi được tính thế nào?</strong><span class="suggestion-note">Luật Chăn nuôi năm 2018</span></button>
+        </div>
+        <div class="how-it-works"><span><b>01</b> Đặt câu hỏi</span><i></i><span><b>02</b> Tìm bằng chứng</span><i></i><span><b>03</b> Đối chiếu nguồn</span></div>
+      </section>
+      <section class="conversation" id="conversation" aria-label="Kết quả hỏi đáp" hidden>
+        <div class="question-heading"><span class="eyebrow">CÂU HỎI CỦA BẠN</span><h1 id="asked-question"></h1></div>
+        <div class="loading-state" id="loading-state" role="status" hidden><span class="spinner"></span><div><strong>Đang tra cứu và soạn câu trả lời</strong><p>Đối chiếu các đoạn nguồn trước khi phản hồi. Vui lòng chờ.</p></div></div>
+        <div class="error-state" id="error-state" role="alert" hidden><h2>Chưa thể hoàn tất câu trả lời</h2><p id="error-message"></p><button id="retry" class="secondary-button">Thử lại câu hỏi này</button></div>
+        <article class="answer-card" id="answer-card" hidden>
+          <div class="answer-header"><span class="answer-label"><span aria-hidden="true">✧</span> Câu trả lời</span><span id="answer-status" class="answer-status"></span></div>
+          <div id="answer-text" class="answer-text"></div>
+          <div class="answer-actions"><button id="copy-answer" class="text-button">Sao chép câu trả lời</button><span id="method-label"></span></div>
+          <div class="source-summary"><div><strong id="source-summary-title">Bằng chứng đi cùng câu trả lời</strong><p id="source-summary-note">Bấm số trích dẫn để đọc nguyên văn đoạn nguồn.</p></div><button id="open-sources" class="secondary-button">Xem nguồn <span id="source-count"></span> ↗</button></div>
+        </article>
+        <p class="result-note">Câu trả lời dựa trên corpus thử nghiệm. Hãy đối chiếu văn bản và thời điểm áp dụng trước khi sử dụng.</p>
+      </section>
+    </main>
+    <div class="composer-area">
+      <form id="ask-form" class="composer">
+        <label for="question" class="sr-only">Câu hỏi pháp luật của bạn</label>
+        <textarea id="question" name="question" rows="2" placeholder="Nhập câu hỏi pháp luật của bạn…" required></textarea>
+        <div class="composer-toolbar"><details id="search-options"><summary>Tùy chọn tìm kiếm <span aria-hidden="true">⌄</span></summary><div class="options-popover"><label for="method">Phương pháp truy xuất</label><select id="method" name="method"><option value="hybrid">Kết hợp · BM25 + ngữ nghĩa</option><option value="dense">Ngữ nghĩa · Dense</option><option value="bm25">Từ khóa · BM25</option></select><p>Mỗi câu hỏi được xử lý độc lập, không sử dụng nội dung câu hỏi trước.</p></div></details><span class="keyboard-hint">Enter để gửi · Shift + Enter xuống dòng</span><button id="submit" type="submit" class="send-button" aria-label="Gửi câu hỏi"><span>Gửi câu hỏi</span> <span aria-hidden="true">↑</span></button></div>
+      </form>
+      <p class="disclaimer">Thông tin tham khảo từ 200 văn bản mẫu · Không thay thế tư vấn pháp lý.</p>
+    </div>
+  </div>
+</div>
+<div id="source-backdrop" class="source-backdrop" hidden></div>
+<aside id="source-panel" class="source-panel" role="dialog" aria-modal="true" aria-labelledby="source-panel-title" hidden>
+  <div class="source-panel-header"><div><span class="eyebrow">KIỂM CHỨNG CÂU TRẢ LỜI</span><h2 id="source-panel-title">Văn bản nguồn</h2></div><button id="close-sources" class="icon-button" aria-label="Đóng bảng nguồn">×</button></div>
+  <p class="source-panel-note">Nguyên văn đoạn đã gửi cho mô hình, lấy từ dữ liệu văn bản đã làm sạch.</p>
+  <div id="source-tabs" class="source-tabs" role="group" aria-label="Chọn đoạn nguồn"></div>
+  <div id="source-content" class="source-content"></div>
+</aside>
+<div id="toast" class="toast" role="status" hidden></div>
+<noscript><p class="noscript">Vui lòng bật JavaScript để sử dụng giao diện hỏi đáp.</p></noscript>
+</body>
+</html>

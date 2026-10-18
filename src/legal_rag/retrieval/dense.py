@@ -11,7 +11,6 @@ import hashlib
 from importlib.metadata import version
 import json
 import math
-import os
 from pathlib import Path
 import tempfile
 
@@ -274,10 +273,10 @@ def search_dense(index: dict, embedding_client: EmbeddingClient,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Build/resume the pilot Chroma index.")
-    parser.add_argument("--base-url", default=os.environ.get("EMBEDDING_BASE_URL", "http://127.0.0.1:8000/v1"))
+    parser.add_argument("--base-url", help="Override the endpoint in project .env or environment.")
     parser.add_argument("--model-revision", help="Optional check; must match embedding.revision in project.yaml.")
     parser.add_argument("--batch-size", type=int, default=16)
     args = parser.parse_args()
-    with EmbeddingClient(args.base_url, batch_size=args.batch_size,
-                         api_key=os.environ.get("VLLM_API_KEY")) as embeddings:
+    with EmbeddingClient.from_env(base_url=args.base_url,
+                                  batch_size=args.batch_size) as embeddings:
         build_dense(load_config(), embeddings, model_revision=args.model_revision)

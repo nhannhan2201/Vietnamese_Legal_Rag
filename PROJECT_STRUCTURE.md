@@ -59,8 +59,7 @@ Vietnamese_Legal_Rag/
 │       │
 │       ├── generation/
 │       │   ├── __init__.py
-│       │   ├── answer.py
-│       │   └── prompt.txt
+│       │   └── answer.py
 │       │
 │       ├── evaluation/
 │       │   ├── __init__.py
@@ -71,7 +70,12 @@ Vietnamese_Legal_Rag/
 │       └── app/
 │           ├── __init__.py
 │           ├── api.py
-│           └── ui.py
+│           └── static/
+│               ├── index.html
+│               ├── styles.css
+│               ├── app.js
+│               └── assets/
+│                   └── legal-hero.webp
 │
 ├── data/
 │   ├── raw/
@@ -178,10 +182,9 @@ Xây và tìm kiếm của cùng một loại index nằm trong cùng module. Kh
 
 | File | Trách nhiệm |
 |---|---|
-| `answer.py` | Nhận câu hỏi, gọi retrieval, dựng context, gọi LLM và trả câu trả lời kèm nguồn. Kiểm tra tham chiếu nguồn theo các chunk thực sự được truy xuất. |
-| `prompt.txt` | Hướng dẫn LLM bám vào chứng cứ, tham chiếu nguồn và thông báo khi thiếu thông tin. |
+| `answer.py` | Chứa `SYSTEM_PROMPT`; nhận câu hỏi, gọi retrieval, dựng messages, gọi LLM và trả câu trả lời kèm nguồn. Kiểm tra số trích dẫn có thuộc các chunk thực sự được cung cấp; chưa tự kiểm chứng từng nhận định. |
 
-Định danh, tên văn bản và URL trích dẫn được lấy từ metadata đã lưu. CLI và API dùng chung luồng trả lời này. UI gửi yêu cầu đến API.
+Định danh, tên văn bản và nguyên văn nguồn lấy từ chunk/metadata đã lưu. Chưa tạo URL ngoài; UI sau này dùng `source_id` để mở đoạn nguồn. Caller nạp index/client một lần rồi tái sử dụng; hybrid là mặc định và có thể chọn BM25/dense. CLI và API sẽ dùng chung luồng trả lời này.
 
 ### Đánh giá: `src/legal_rag/evaluation/`
 
@@ -197,10 +200,17 @@ Câu ngoài phạm vi corpus được đánh dấu riêng; không đưa vào cá
 
 | File | Trách nhiệm |
 |---|---|
-| `api.py` | API nhận câu hỏi, gọi luồng trả lời và trả câu trả lời, nguồn cùng thông tin retrieval cần thiết. |
-| `ui.py` | Giao diện hỏi đáp đơn giản, gửi yêu cầu đến API và hiển thị câu trả lời/nguồn. |
+| `api.py` | FastAPI: `POST /ask` nhận `question` và `method` (mặc định hybrid), gọi `answer_question()` và trả câu trả lời/nguồn. Lifespan nạp index, tạo client một lần mỗi worker và đóng HTTP client khi dừng. `GET /health` kiểm tra sẵn sàng local, không gọi API ngoài. |
+| `static/index.html` | Cấu trúc giao diện tiếng Việt: câu hỏi gợi ý, ô nhập, kết quả và bảng xem nguồn. |
+| `static/styles.css` | Bố cục responsive, tông navy/kem/vàng đồng, chữ và trạng thái tương tác. Font Google có font hệ thống dự phòng khi không có mạng. |
+| `static/app.js` | Gửi `question`/`method` đến `/ask`, hiển thị kết quả, mở trích dẫn, sao chép và lịch sử trong bộ nhớ tab. Không chứa API key. |
+| `static/assets/legal-hero.webp` | Ảnh minh họa cán cân công lý và sách luật, tạo bằng imagegen; không dùng dấu hiệu cơ quan nhà nước. |
 
-Làm API và UI sau khi pipeline terminal chạy ổn. Framework và hình thức triển khai được chốt ở giai đoạn demo.
+API và UI chạy chung bằng `python -m uvicorn legal_rag.app.api:app --host 127.0.0.1 --port 8001` trong môi trường `legal-rag`, một worker. Mở `http://127.0.0.1:8001/` để dùng web; schema vẫn ở `/docs`. Không cần Node hoặc lệnh build frontend. Khi thay code Python, dừng rồi chạy lại server. API không tự tạo embedding hoặc xây lại index.
+
+Frontend gọi API cùng origin. Cả ba phương pháp đều dùng luồng trả lời hiện có; mặc định hybrid. Câu hỏi xử lý độc lập, không gửi lịch sử cho model. Lịch sử chỉ nằm trong bộ nhớ tab, mất khi tải lại trang. Nút gợi ý điền câu hỏi, người dùng bấm gửi để thực hiện request. `[n]` ánh xạ đến `sources[].source_id`, mở nguyên văn `sources[].text` và metadata; không tạo link văn bản bên ngoài. Điểm retrieval không hiển thị trong giao diện chính. Markdown cơ bản được dựng bằng DOM/textContent, không thực thi HTML trong câu trả lời hoặc nguồn.
+
+`GET /health` chỉ xác nhận dữ liệu/client local được nạp, chưa khẳng định endpoint embedding/LLM đang truy cập được. Không tự retry request; nút thử lại do người dùng chủ động. Rời lượt tra cứu chỉ ngừng chờ ở trình duyệt, request đã gửi có thể vẫn tiếp tục ở backend. Đây là demo local với 200 văn bản mẫu, chưa có xác thực hoặc triển khai public.
 
 ## 5. Code, dữ liệu và kết quả khác nhau thế nào?
 
@@ -253,7 +263,7 @@ Câu hỏi từ CLI hoặc API
        -> hybrid gộp hai danh sách bằng RRF
   -> các chunk và metadata nguồn
   -> generation/answer.py dựng context
-  -> models/llm.py + prompt.txt
+  -> SYSTEM_PROMPT trong answer.py + models/llm.py
   -> câu trả lời và nguồn có thể đối chiếu
 ```
 
@@ -314,3 +324,9 @@ Mỗi lượt chỉ tạo hoặc sửa file cần thiết cho bước đang làm
 | `test_evaluation.py` | Nhãn chứng cứ hợp lệ; Recall/MRR đúng trên ví dụ tính tay; câu ngoài phạm vi được xử lý riêng. |
 
 Các file test được tạo dần khi có hành vi cần xác minh. Ngoài test nhỏ, kiểm tra tích hợp thực tế khi tải dữ liệu, chạy Chroma và chuyển index giữa môi trường. Các giá trị chunk size, overlap, model, thông số retrieval và framework demo chỉ được chốt sau khi đến giai đoạn tương ứng; tài liệu này xác định nơi đặt chức năng, không giả định các quyết định đó đã xong.
+
+### Nguồn ảnh giao diện
+
+Ảnh `src/legal_rag/app/static/assets/legal-hero.webp` được tạo bằng công cụ imagegen tích hợp, sau đó chuyển sang WebP để phục vụ local. Prompt đã dùng:
+
+> Use case: photorealistic-natural. Asset type: hero photograph for Vietnamese legal research chatbot website. Create a refined editorial still life of antique brass scales of justice on a warm ivory stone desk, dark navy law books with blank spines, quiet architectural arches in softly blurred background. Natural afternoon light, warm gold highlights, rich navy shadows, subtle film grain, premium calm scholarly mood. Wide landscape composition, scales to right of center, no people, no text or lettering, no flags, no state seals, no logos, no watermark. The image will be cropped into a horizontal website banner.

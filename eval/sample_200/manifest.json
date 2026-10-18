@@ -1,0 +1,65 @@
+{
+  "format_version": 2,
+  "dataset": {
+    "repo_id": "th1nhng0/vietnamese-legal-documents",
+    "revision": "0a39ad7eae8e6c188cb225c4b1443c3b346461d8"
+  },
+  "source": {
+    "path": "data/processed/sample_200/cleaned_documents.jsonl",
+    "sha256": "d5097c4ecf375880351f6f4bf9724303c3c17b8788b89995c1beaa6c0783717d",
+    "document_count": 200,
+    "text_field": "text"
+  },
+  "questions": {
+    "path": "eval/sample_200/questions.jsonl",
+    "sha256": "f35d0b5b4e1d6296cb1e24c8f3941889398eda8f632aeb0aac18c7df432b2d18",
+    "count": 30,
+    "review_status": "verified",
+    "wording_groups": {
+      "with_document_number": 15,
+      "without_document_number": 15
+    },
+    "review_counts": {
+      "verified": 30,
+      "pending": 0
+    },
+    "source_counts": {
+      "single_document": 24,
+      "two_documents": 6
+    }
+  },
+  "evidence": {
+    "offset_unit": "Python Unicode code point",
+    "interval": "[start_char, end_char)",
+    "reference": "source document text",
+    "meaning": "Each passage supports a required answer aspect. Both documents are needed to fully answer each two-document question. In q028, Article 3 and Article 10 of doc_id 141383 are alternative evidence for the same aspect. A chunk is relevant if it fully contains any annotated passage.",
+    "chunk_independent": true
+  },
+  "limitations": [
+    "Completeness of alternative evidence labels is not guaranteed.",
+    "Source content is evaluated as provided; current legal validity is not verified.",
+    "Questions without document numbers may name source titles, years or locality.",
+    "No unanswerable cases; dev/test split not assigned."
+  ],
+  "updated_at_utc": "2026-10-17T09:02:47.877629+00:00",
+  "evaluation_protocol": {
+    "top_k": 5,
+    "document_recall": "Count distinct retrieved doc_ids intersecting distinct evidence doc_ids, divided by number of distinct evidence doc_ids. Restrict retrieved IDs to the first five chunks; do not refill after deduplication.",
+    "chunk_relevance": "Same doc_id and chunk.start_char <= evidence.start_char and chunk.end_char >= evidence.end_char for at least one evidence passage.",
+    "hit": "1 if any relevant chunk is in top five, else 0.",
+    "reciprocal_rank": "1 / first relevant chunk rank in top five, else 0. MRR is mean across questions.",
+    "latency": "Mean retrieval time including query embedding/API/network for dense and hybrid; exclude index loading, scoring metrics and writing outputs.",
+    "caveat": "Hit/MRR require at least one evidence passage, not complete coverage of both sources."
+  },
+  "annotation_changes": [
+    {
+      "question_id": "q028",
+      "reason": "Added omitted alternative evidence in Article 3 of doc_id 141383; retained Article 10 and doc_id 162690. User authorized this correction.",
+      "added_evidence": {
+        "doc_id": "141383",
+        "start_char": 1395,
+        "end_char": 1662
+      }
+    }
+  ]
+}

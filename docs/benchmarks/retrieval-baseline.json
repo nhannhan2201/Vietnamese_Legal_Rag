@@ -1,0 +1,43 @@
+{
+  "run_id": "20261017_090351_985103_4689675c",
+  "status": "completed",
+  "question_count": 30,
+  "parameters": {
+    "k": 5,
+    "bm25_k": 20,
+    "dense_k": 20,
+    "rrf_k": 60
+  },
+  "dataset": {
+    "repo_id": "th1nhng0/vietnamese-legal-documents",
+    "revision": "0a39ad7eae8e6c188cb225c4b1443c3b346461d8"
+  },
+  "model": "Qwen/Qwen3-Embedding-0.6B",
+  "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+  "questions_sha256": "f35d0b5b4e1d6296cb1e24c8f3941889398eda8f632aeb0aac18c7df432b2d18",
+  "chunks_sha256": "e9a578c68eecea37beed8ac784ada1ecb2ac9ad32d4b8cddf07b8605e7a4fce0",
+  "summary": {
+    "bm25": {
+      "recall@5": 0.9833333333333333,
+      "hit@5": 0.8333333333333334,
+      "mrr@5": 0.6816666666666666,
+      "avg_latency_ms": 114.53327953931876,
+      "question_count": 30
+    },
+    "dense": {
+      "recall@5": 0.9833333333333333,
+      "hit@5": 0.9,
+      "mrr@5": 0.705,
+      "avg_latency_ms": 386.4336049630462,
+      "question_count": 30
+    },
+    "hybrid": {
+      "recall@5": 0.9833333333333333,
+      "hit@5": 0.8333333333333334,
+      "mrr@5": 0.6805555555555556,
+      "avg_latency_ms": 501.8748732341919,
+      "question_count": 30
+    }
+  },
+  "note": "Pilot retrieval baseline on all 30 verified questions; no held-out test split. Latency includes embedding/network for dense and hybrid, excludes index loading, scoring and serialization."
+}
